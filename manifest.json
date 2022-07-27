@@ -1,10 +1,10 @@
 {
-  "manifest_version": 2,
-  "name"            : "Screenshot Capture",
-  "version"         : "2.0",
-  "description"     : "Screenshot Capture",
+  "manifest_version": 3,
+  "name"            : "Baskin Screenshot Capture",
+  "version"         : "1.0",
+  "description"     : "Baskin Screenshot Capture",
 
-  "browser_action": {
+  "action": {
     "default_icon": {
       "19" : "/images/icon19.png",
       "38" : "/images/icon38.png"
@@ -12,19 +12,31 @@
     "default_title": "Screenshot Capture"
   },
 
+  "content_scripts": [
+    {
+      "css": [
+        "vendor/jquery.Jcrop.min.css", 
+        "css/content.css"
+      ],
+      "js": [
+        "./vendor/jquery.min.js",
+        "./vendor/jquery.Jcrop.min.js",
+        "./content/content.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
   "options_page": "/content/options.html",
 
   "background" : {
-    "scripts": [
-      "background/background.js"
-    ],
-    "persistent": false
+    "service_worker": "background.js"
   },
 
-  "web_accessible_resources": [
-    "/images/Jcrop.gif",
-    "/images/pixel.png"
-  ],
+  "web_accessible_resources": [{
+    "resources": ["/images/Jcrop.gif", "/images/pixel.png"],
+    "matches": ["<all_urls>"]
+  }],
 
   "commands": {
     "take-screenshot": {
@@ -41,10 +53,9 @@
     "128" : "images/icon128.png"
   },
 
-  "homepage_url": "https://chrome.google.com/webstore/detail/screenshot-capture/giabbpobpebjfegnpcclkocepcgockkc",
-
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ]
 }
