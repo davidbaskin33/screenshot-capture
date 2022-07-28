@@ -50,27 +50,70 @@ var init = (done) => {
   })
 }
 
+function crop (image, area, dpr, preserve, format, done) {
+  var top = area.y * dpr
+  var left = area.x * dpr
+  var width = area.w * dpr
+  var height = area.h * dpr
+  var w = (dpr !== 1 && preserve) ? width : area.w
+  var h = (dpr !== 1 && preserve) ? height : area.h
+
+  var canvas = null
+  if (!canvas) {
+    canvas = document.createElement('canvas')
+    document.body.appendChild(canvas)
+  }
+  canvas.width = w
+  canvas.height = h
+
+  var img = new Image()
+  img.onload = () => {
+    var context = canvas.getContext('2d')
+    context.drawImage(img,
+      left, top,
+      width, height,
+      0, 0,
+      w, h
+    )
+
+    var cropped = canvas.toDataURL(`image/${format}`)
+    done(cropped)
+  }
+  img.src = image
+}
+
 var capture = (force) => {
   chrome.storage.sync.get((config) => {
     if (selection && (config.method === 'crop' || (config.method === 'wait' && force))) {
-      jcrop.release()
+      var area = selection;
       setTimeout(() => {
         chrome.runtime.sendMessage({
           message: 'capture', area: selection, dpr: devicePixelRatio
         }, (res) => {
-          overlay(false)
-          selection = null
-          save(res.image, config.format, config.save)
+          crop(res.image, area, devicePixelRatio, config.dpr, config.format, (cropped) => {
+            overlay(false)
+            selection = null
+            save(cropped, config.format, config.save)
+          })          
         })
       }, 50)
+      jcrop.release()
     }
     else if (config.method === 'view') {
       chrome.runtime.sendMessage({
         message: 'capture',
         area: {x: 0, y: 0, w: innerWidth, h: innerHeight}, dpr: devicePixelRatio
       }, (res) => {
-        overlay(false)
-        save(res.image, config.format, config.save)
+        if (devicePixelRatio !== 1 && !config.dpr) {
+          crop(res.image, area, devicePixelRatio, config.dpr, config.format, (cropped) => {
+            overlay(false)
+            save(cropped, config.format, config.save)
+          })
+        }
+        else {
+          overlay(false)
+          save(res.image, config.format, config.save)
+        }
       })
     }
   })
