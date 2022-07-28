@@ -1,14 +1,14 @@
 
-var jcrop, selection
+let jcrop, selection;
 
-var overlay = ((active) => (state) => {
+const overlay = ((active) => (state) => {
   active = typeof state === 'boolean' ? state : state === null ? active : !active
   $('.jcrop-holder')[active ? 'show' : 'hide']()
   chrome.runtime.sendMessage({message: 'active', active})
 })(false)
 
-var image = (done) => {
-  var image = new Image()
+const image = (done) => {
+  const image = new Image()
   image.id = 'fake-image'
   image.src = chrome.runtime.getURL('/images/pixel.png')
   image.onload = () => {
@@ -17,7 +17,7 @@ var image = (done) => {
   }
 }
 
-var init = (done) => {
+const init = (done) => {
   $('#fake-image').Jcrop({
     bgColor: 'none',
     onSelect: (e) => {
@@ -50,15 +50,15 @@ var init = (done) => {
   })
 }
 
-function crop (image, area, dpr, preserve, format, done) {
-  var top = area.y * dpr
-  var left = area.x * dpr
-  var width = area.w * dpr
-  var height = area.h * dpr
-  var w = (dpr !== 1 && preserve) ? width : area.w
-  var h = (dpr !== 1 && preserve) ? height : area.h
+const crop = (image, area, dpr, preserve, format, done) => {
+  const top = area.y * dpr
+  const left = area.x * dpr
+  const width = area.w * dpr
+  const height = area.h * dpr
+  const w = (dpr !== 1 && preserve) ? width : area.w
+  const h = (dpr !== 1 && preserve) ? height : area.h
 
-  var canvas = null
+  let canvas = null
   if (!canvas) {
     canvas = document.createElement('canvas')
     document.body.appendChild(canvas)
@@ -66,9 +66,9 @@ function crop (image, area, dpr, preserve, format, done) {
   canvas.width = w
   canvas.height = h
 
-  var img = new Image()
+  const img = new Image()
   img.onload = () => {
-    var context = canvas.getContext('2d')
+    const context = canvas.getContext('2d')
     context.drawImage(img,
       left, top,
       width, height,
@@ -76,16 +76,16 @@ function crop (image, area, dpr, preserve, format, done) {
       w, h
     )
 
-    var cropped = canvas.toDataURL(`image/${format}`)
+    const cropped = canvas.toDataURL(`image/${format}`)
     done(cropped)
   }
   img.src = image
 }
 
-var capture = (force) => {
+const capture = (force) => {
   chrome.storage.sync.get((config) => {
     if (selection && (config.method === 'crop' || (config.method === 'wait' && force))) {
-      var area = selection;
+      const area = selection;
       setTimeout(() => {
         chrome.runtime.sendMessage({
           message: 'capture', area: selection, dpr: devicePixelRatio
@@ -119,19 +119,19 @@ var capture = (force) => {
   })
 }
 
-var filename = (format) => {
-  var pad = (n) => (n = n + '', n.length >= 2 ? n : `0${n}`)
-  var ext = (format) => format === 'jpeg' ? 'jpg' : format === 'png' ? 'png' : 'png'
-  var timestamp = (now) =>
+const filename = (format) => {
+  const pad = (n) => (n = n + '', n.length >= 2 ? n : `0${n}`)
+  const ext = (format) => format === 'jpeg' ? 'jpg' : format === 'png' ? 'png' : 'png'
+  const timestamp = (now) =>
     [pad(now.getFullYear()), pad(now.getMonth() + 1), pad(now.getDate())].join('-')
     + ' - ' +
     [pad(now.getHours()), pad(now.getMinutes()), pad(now.getSeconds())].join('-')
   return `Screenshot Capture - ${timestamp(new Date())}.${ext(format)}`
 }
 
-var save = (image, format, save) => {
+const save = (image, format, save) => {
   if (save === 'file') {
-    var link = document.createElement('a')
+    const link = document.createElement('a')
     link.download = filename(format)
     link.href = image
     link.click()
@@ -146,10 +146,10 @@ var save = (image, format, save) => {
     })
   }
   else if (save === 'binary') {
-    var [header, base64] = image.split(',')
-    var [_, type] = /data:(.*);base64/.exec(header)
-    var binary = atob(base64)
-    var array = Array.from({length: binary.length})
+    const [header, base64] = image.split(',')
+    const [_, type] = /data:(.*);base64/.exec(header)
+    const binary = atob(base64)
+    const array = Array.from({length: binary.length})
       .map((_, index) => binary.charCodeAt(index))
     navigator.clipboard.write([
       new ClipboardItem({

@@ -28,7 +28,7 @@ function inject (tab) {
     }
   })
 
-  var timeout = setTimeout(() => {
+  const timeout = setTimeout(() => {
     setTimeout(() => {
       chrome.tabs.sendMessage(tab.id, {message: 'init'})
     }, 100)
